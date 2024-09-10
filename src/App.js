@@ -1,105 +1,87 @@
-import { useEffect, useRef } from 'react';
 import './App.css';
-import { useDispatch, useSelector } from 'react-redux';
-import { len,num,cha,passw } from './store/passSlice';
+import MainInput from './component/MainInput';
+import { useState } from 'react';
+import UseCurrencyinfo from './hooks/UseCurrencyInfo';
 
 function App() {
-
-  /*let [num,setNum] = useState(false);
-  let [cha,setCha] = useState(false);
-  let [len,setLen] = useState(8)
-  let [password,setPassword] = useState('');*/
-
-  let dispatch = useDispatch()
-  let number = useSelector((state)=>state.num)
-  let character = useSelector((state)=>state.cha)
-  let length = useSelector((state)=>state.len)
-  let password = useSelector((state)=>state.passw)
-
-  let change = ()=>{
-
-    let str = ''
-    let pass = ''
   
-    if(number || character){
-      if(number) str += '1234567890'
-      if(character) str += 'abcdefghijklmnopqrstuvwxyz'
+  let [amount,setAmount] = useState(0);
+  let [from,setFrom] = useState('inr')
+  let [to,setTo] = useState('usd')
+  let [convert,setConvert] = useState(0);
 
-      for(let i=0;i<length;i++){
-        pass += str.charAt(Math.floor(Math.random()*str.length))
-      }
-      dispatch(passw(pass))
-    }
+  let currencyInfo = UseCurrencyinfo(from)
+  console.log(currencyInfo)
+  let options = Object.keys(currencyInfo)
+
+  let con = ()=>{
+    setConvert(amount * currencyInfo[to])
   }
-  
-  useEffect(()=>{
-    change()
-  },[length,number,character])
 
-  let copyPass = useRef(null);
-
-  let copy = ()=>{
-    copyPass.current?.select();
-    copyPass.current?.setSelectionRange(0, 999);
-    navigator.clipboard.writeText(password)
+  let swap = ()=>{
+    setFrom(to)
+    setTo(from)
   }
-  
+
   return (
-    
-    <div className="w-full max-w-md mx-auto shadow-md rounded-lg px-4 py-3 my-8 bg-gray-800 text-orange-500">
-      <h1 className='text-white text-center my-3'>Password generator</h1>
-    <div className="flex shadow rounded-lg overflow-hidden mb-4">
-        <input
-            readOnly
-            className="outline-none w-full py-1 px-3"
-            placeholder="Password"
-            value={password}
-            ref={copyPass}
-        />
-        <button
-        
-        className='outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0'
-        onClick={copy}>copy</button>
-        
+    <div
+      className="w-full h-screen flex flex-wrap justify-center items-center bg-cover bg-no-repeat"
+      style={{
+        backgroundImage: `url('https://images.unsplash.com/photo-1725922638181-3dbab8df0f95?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`,
+      }}
+    >
+      <div className="w-full">
+        <div className="w-full max-w-md mx-auto border border-gray-60 rounded-lg p-5 backdrop-blur-sm bg-white/30">
+          <form onSubmit={(e)=>{
+            e.preventDefault()
+            con()
+          }} 
+          >
+            <div className="w-full mb-1">
+            
+            <MainInput
+            label = 'From'
+            amount={amount}
+            amountChange={(amount) => setAmount(amount)}
+            options={options}
+            currencyChange={(currency)=>setFrom(currency)}
+            setCurrency={from}
+            />
+              
+            </div>
+            <div className="relative w-full h-0.5">
+              <button
+                type="button"
+                className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 border-2 border-white rounded-md bg-blue-600 text-white px-2 py-0.5"
+                onClick={swap}
+              >
+                swap
+              </button>
+            </div>
+            <div className="w-full mt-1 mb-4">
+              
+              <MainInput
+              label='To'
+              amount={convert}
+              options={options}
+              currencyChange={(currency)=>setTo(currency)}
+              setCurrency={to}
+              amountDisable
+              />
+            </div>
+
+            <button
+            className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg"
+            type='submit'
+            >
+              Convert : {from.toUpperCase()} to {to.toUpperCase()}
+            </button>
+            
+          </form>
+        </div>
+      </div>
     </div>
-    <div className='flex text-sm gap-x-2'>
-      <div className='flex items-center gap-x-1'>
-        <input 
-        type="range"
-        name = 'len'
-        value={length}
-        min={8}
-        max={20}
-        onChange={(e)=>dispatch(len(e.target.value))}
-        className='cursor-pointer'
-         
-          />
-          <label>Length: {length}</label>
-      </div>
-      <div className="flex items-center gap-x-1">
-      <input
-          type="checkbox"
-          name='num'
-          checked = {number}
-          onChange={()=>dispatch(num(!number))}
-          id="numberInput"
-          
-      />
-      <label htmlFor="numberInput">Numbers</label>
-      </div>
-      <div className="flex items-center gap-x-1">
-          <input
-              type="checkbox"
-              name='cha'
-              checked = {character}
-              onChange={()=>dispatch(cha(!character))}
-          />
-          <label htmlFor="characterInput">Characters</label>
-      </div>
-    </div>
-</div>
-    
-  )
+  );
 }
 
 export default App;
